@@ -1,0 +1,45 @@
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# no swap files
+*.swp
+
+# Miscellaneous
+LowClust
+output/*
+datasets/*
+# static library files
+*.a
+
+# CMake stuff
+CMakeFiles*
+CMakeCache.txt
+Makefile
+cmake_install.cmake
+

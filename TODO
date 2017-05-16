@@ -1,0 +1,85 @@
+IMPROVEMENTS 1
+--> If we have a very large MPI cluster, then the input and output buffer will begin to use a very large
+amount of memory. Since we can only send input and output to one at a time we should just design the
+thing like this
+* We pass around signals using tags detailing who we're from using an integer
+array MPI_Waitany() will return an index to an array which is just a way to alert us that the person
+there is now ready for an operation
+* We send back a ready filled input buffer to that one. There's no reason to have all the input and
+output buffer's available when they won't be all used anyways, instead have a set of "ready" input and
+ output buffers which are used for the MPI operations and are filled/emptied as quickly as possible.
+* This way head node memory usage only scales with block mb
+
+--> Use strlen instead of BUFFER_SIZE to save on communication costs
+* strlen requires an iteration of the buffer so it's slow.
+* instead use a global buffer of lengths to read and write from this saves on communication cost
+
+--> The memset is not useful if we just make sure to use strlen to send data and make sure to place a null terminator for the strings
+* memset is also a databased operation so it will be slow! It's best to avoid it if possible.
+* Interestingly enough the memset has an effect on the program. Trying to get rid of it causes crashes
+make sure its not silly
+
+--> thread the lastdb creation so that the cores are properly used.
+
+--> Figure out the compilation and linking issues with LAST and LowClust
+* In one line call the LAST makefile and then link with the archive files
+* Before this will run I need to rewrite the makefile so it works on both OSX and Linux
+* For now just use the CMake file
+
+--> strcat, sprintf, stringstream are all quite slow in reality. We need a faster version of these
+functions in order to make the system faster.
+* Create a Match strcat function
+
+--> The alignmentWrite calculateIdentity function is very inefficient it needs to be rebuilt.
+
+--> Way too much memory copying. We really just need to use pointers everywhere.
+* The Match structure should also just use pointers instead of creating strings
+* Unnecessary allocation of temp structures such as strings.
+
+ --> Is it possible to just turn the vectors into binary format and send over MPI and
+ recreate the structure on the other end? Turning everything into a character array
+ is painful.
+ --> Can google protobufs handle this?
+
+--> When there are many MPI processes on the same system, how do the named semaphores
+react with eachother? Do they have global filesystem scope? Where does the scope of
+a named semaphore end?
+Mac OSX problem
+
+--> We dont need another disk read to merge the files. We can just use the external
+heapsort mechanism to read sequences off the piles one at a time because the
+mechanism gives us our global sorted order without requiring another disk read
+and write to create blocks. This also allows us to check which sequences are
+required every time.
+
+--> Remove the sorting stage, it's actually not that useful.
+
+IMPROVEMENTS 2
+--> Output should match how CD-Hit does it.
+
+--> cleanup tmp dirs: (sorting, suffix arrays, clustering, merging)
+
+--> Need to fix all of the //!! Comments because those are important!
+
+
+Minimum Viable Product
+
+//!! The database is missing one sequence
+//!! The database sequences have their names have an extra newline when lasted against. This could be
+the cause of the lastal hanging as it reads poor sequences
+// some of the sequences retain > while the majority dont
+// the parseReps killed the first representative
+// There are 0s in several round positions, they shouldn't be there, in fact it should be pure 1s
+
+// Potential problem with how the mergedfiles and databases are being handled in their naming schemes
+from the TEMPFILEs
+// databases in particular need to be brought into the TEMPFILES fold
+// We can delete all of our tempfiles by recursively deleting our tmpdirectory
+
+// Having more than 4-5 rounds is causing a segfault
+
+When the main thread (thread 1) calls finalizing it triggers a segfault.
+
+Remove the threading component on the master
+
+Wire in numthreads for lastal
